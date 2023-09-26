@@ -16,6 +16,9 @@ pub enum Commands {
 
         #[arg(short, long, value_parser=parse_key_val::<String, String>)]
         args: Vec<(String, String)>,
+
+        #[arg(short, long)]
+        values: Option<PathBuf>,
     },
 }
 
