@@ -1,3 +1,5 @@
+-- Based on https://github.com/kubernetes/website/blob/main/content/en/examples/pods/simple-pod.yaml
+
 local name = name or 'nginx'
 local port = tonumber(port) or 80
 
