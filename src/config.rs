@@ -1,6 +1,6 @@
 use std::{error::Error, path::PathBuf};
 
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about= None)]
@@ -9,17 +9,20 @@ pub struct Cli {
     pub command: Commands,
 }
 
+#[derive(Args)]
+pub struct Xlate {
+    pub script: PathBuf,
+
+    #[arg(short, long, value_parser=parse_key_val::<String, String>)]
+    pub args: Vec<(String, String)>,
+
+    #[arg(short, long)]
+    pub values: Option<PathBuf>,
+}
+
 #[derive(Subcommand)]
 pub enum Commands {
-    Xlate {
-        script: PathBuf,
-
-        #[arg(short, long, value_parser=parse_key_val::<String, String>)]
-        args: Vec<(String, String)>,
-
-        #[arg(short, long)]
-        values: Option<PathBuf>,
-    },
+    Xlate(Xlate),
 }
 
 // Shamelessly stolen from:
