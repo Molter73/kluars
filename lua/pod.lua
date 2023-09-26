@@ -29,7 +29,7 @@ local spec = {
     },
 }
 
-Obj = {
+return {
     apiVersion = 'v1',
     kind = 'Pod',
     metadata = metadata,
