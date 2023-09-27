@@ -49,8 +49,9 @@ fn set_env(args: &LuaArgs) {
     }
 }
 
-fn translate(args: Global) -> Result<()> {
+fn translate_inner(args: Global) -> Result<String> {
     set_env(&args.lua_args);
+    let mut out = String::new();
     let lua = Lua::new();
     let table = run_lua(&lua, &args.lua_args)?;
 
@@ -58,12 +59,17 @@ fn translate(args: Global) -> Result<()> {
         // table is an array, produce multidoc yaml
         for pair in table.pairs::<u64, Table>() {
             let (_, v) = pair?;
-            println!("---");
-            println!("{}", serde_yaml::to_string(&v).unwrap());
+            out += "---\n";
+            out += &serde_yaml::to_string(&v)?;
         }
     } else {
-        println!("{}", serde_yaml::to_string(&table).unwrap());
+        out += &serde_yaml::to_string(&table)?;
     }
+    Ok(out)
+}
+
+fn translate(args: Global) -> Result<()> {
+    println!("{}", translate_inner(args)?);
     Ok(())
 }
 
@@ -145,5 +151,78 @@ pub async fn run(cli: Cli) -> Result<()> {
     match cli.command {
         config::Commands::Xlate(args) => translate(args),
         config::Commands::Apply(args) => apply(args).await,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::HashMap, path::PathBuf};
+
+    use serde_yaml::Value;
+
+    use super::*;
+
+    #[test]
+    fn basic() {
+        let lua_args = LuaArgs {
+            path: PathBuf::from("lua/pod.lua"),
+            args: Vec::new(),
+            values: None,
+        };
+        let args = Global {
+            namespace: None,
+            all: false,
+            lua_args,
+        };
+        let name = &Value::String(String::from("nginx"));
+
+        let out = translate_inner(args).expect("Failed to translate 'lua/pod.lua'");
+        let out: HashMap<String, Value> = serde_yaml::from_str(&out).expect("Got invalid YAML");
+
+        // kind: Pod
+        let value = out.get("kind").expect("kind not found");
+        let expected = &Value::String(String::from("Pod"));
+        assert_eq!(value, expected);
+
+        // apiVersion: v1
+        let value = out.get("apiVersion").expect("apiVersion not found");
+        let expected = &Value::String(String::from("v1"));
+        assert_eq!(value, expected);
+
+        // metadata
+        let metadata = out.get("metadata").expect("did not find metadata");
+
+        let value = metadata.get("name").expect("did not find name");
+        let expected = name;
+        assert_eq!(value, expected);
+
+        // spec
+        let spec = out.get("spec").expect("did not find spec");
+        let containers = spec.get("containers").expect("did not find containers");
+        let Value::Sequence(containers) = containers else {
+            panic!("containers is not sequence");
+        };
+        assert_eq!(containers.len(), 1);
+
+        let nginx = containers.get(0).unwrap();
+        let value = nginx.get("name").expect("no name in nginx");
+        assert_eq!(value, name);
+
+        let value = nginx.get("image").expect("no image in nginx");
+        let expected = &Value::String(String::from("nginx:1.14.2"));
+        assert_eq!(value, expected);
+
+        let ports = nginx.get("ports").expect("no ports in nginx");
+        let Value::Sequence(ports) = ports else {
+            panic!("ports is not sequence");
+        };
+        assert_eq!(ports.len(), 1);
+
+        let port = ports.get(0).unwrap();
+        let Value::Number(port) = port.get("containerPort").unwrap() else {
+            panic!("containerPort is not number")
+        };
+        let port = port.as_u64().unwrap();
+        assert_eq!(port, 80);
     }
 }
