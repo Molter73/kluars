@@ -10,17 +10,26 @@ pub struct Cli {
 }
 
 #[derive(Args)]
-pub struct Global {
+pub struct LuaArgs {
     pub path: PathBuf,
 
     #[arg(short, long, value_parser=parse_key_val::<String, String>)]
     pub args: Vec<(String, String)>,
 
-    #[arg(short, long)]
+    #[arg(short = 'g', long = "globals")]
     pub values: Option<PathBuf>,
+}
 
+#[derive(Args)]
+pub struct Global {
     #[arg(short, long)]
     pub namespace: Option<String>,
+
+    #[arg(short = 'A', long = "all-namespaces")]
+    pub all: bool,
+
+    #[command(flatten)]
+    pub lua_args: LuaArgs,
 }
 
 #[derive(Subcommand)]
