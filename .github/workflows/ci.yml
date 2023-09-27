@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: install luaJIT
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luajit
 
       - name: Check code formatting
         run: cargo fmt --check
@@ -26,6 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: install luaJIT
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luajit
+
       - name: Run tests
         run: cargo test
 
@@ -33,4 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: install luaJIT
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luajit
+
       - run: cargo build
