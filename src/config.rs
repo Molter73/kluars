@@ -10,19 +10,23 @@ pub struct Cli {
 }
 
 #[derive(Args)]
-pub struct Xlate {
-    pub script: PathBuf,
+pub struct Global {
+    pub path: PathBuf,
 
     #[arg(short, long, value_parser=parse_key_val::<String, String>)]
     pub args: Vec<(String, String)>,
 
     #[arg(short, long)]
     pub values: Option<PathBuf>,
+
+    #[arg(short, long)]
+    pub namespace: Option<String>,
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
-    Xlate(Xlate),
+    Xlate(Global),
+    Apply(Global),
 }
 
 // Shamelessly stolen from:

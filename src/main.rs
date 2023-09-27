@@ -1,8 +1,10 @@
+use anyhow::Result;
 use clap::Parser;
-use mlua::Result;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
+    env_logger::init();
     let cli = kluars::config::Cli::parse();
 
-    kluars::run(cli)
+    kluars::run(cli).await
 }
