@@ -11,30 +11,38 @@ pub struct Cli {
 
 #[derive(Args)]
 pub struct LuaArgs {
+    /// Path to lua script or a directory holding init.lua
     pub path: PathBuf,
 
+    /// Global variables to be added into lua env, can be used multiple times
     #[arg(short, long, value_parser=parse_key_val::<String, String>)]
     pub args: Vec<(String, String)>,
 
+    /// A lua script that will be run before the main one for defining globals
     #[arg(short = 'g', long = "globals")]
     pub values: Option<PathBuf>,
 }
 
 #[derive(Args)]
 pub struct Global {
+    /// k8s namespace to be used
     #[arg(short, long)]
     pub namespace: Option<String>,
 
+    /// Unused
     #[arg(short = 'A', long = "all-namespaces")]
     pub all: bool,
 
+    /// Arguments to pass into lua
     #[command(flatten)]
     pub lua_args: LuaArgs,
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Translate lua scripts to YAML
     Xlate(Global),
+    /// Apply lua configuration to k8s cluster
     Apply(Global),
 }
 
