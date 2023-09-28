@@ -49,7 +49,7 @@ fn set_env(args: &LuaArgs) {
     }
 }
 
-fn translate_inner(args: Global) -> Result<String> {
+fn translate(args: Global) -> Result<()> {
     set_env(&args.lua_args);
     let mut out = String::new();
     let lua = Lua::new();
@@ -65,11 +65,8 @@ fn translate_inner(args: Global) -> Result<String> {
     } else {
         out += &serde_yaml::to_string(&table)?;
     }
-    Ok(out)
-}
 
-fn translate(args: Global) -> Result<()> {
-    println!("{}", translate_inner(args)?);
+    println!("{out}");
     Ok(())
 }
 
